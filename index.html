@@ -1,0 +1,559 @@
+<html lang="id"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="pageTitle">Katalog ATK &amp; Fotokopi - ALHUSNA</title>
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), 
+                        url('https://i.pinimg.com/1200x/c4/b3/0d/c4b30d00b5716d5f0edbeea9e114f10b.jpg') !important;
+            background-size: cover !important;
+            background-position: center !important;
+            background-attachment: fixed !important;
+            background-repeat: no-repeat !important;
+        }
+        
+        /* CSS Khusus Cetak / Print */
+        @media print {
+            body * {
+                visibility: hidden !important;
+            }
+            #printSection, #printSection * {
+                visibility: visible !important;
+            }
+            #printSection {
+                position: absolute !important;
+                left: 0 !important;
+                top: 0 !important;
+                width: 100% !important;
+                background: white !important;
+                color: black !important;
+                padding: 20px !important;
+                display: block !important;
+            }
+        }
+    </style>
+    
+</head>
+<body class="bg-slate-50 font-sans pb-24">
+
+    <!-- HEADER / NAVBAR -->
+    <header class="bg-blue-600 text-white shadow-md sticky top-0 z-40">
+        <div class="container mx-auto px-4 py-3 flex flex-col md:flex-row justify-between items-center gap-3">
+            <div class="flex items-center justify-between w-full md:w-auto">
+                <!-- Bagian Logo & Nama Toko -->
+                <div class="flex items-center gap-3 select-none">
+                    <div id="navLogoContainer" class="flex items-center cursor-pointer" onclick="aksesAdminRahasia()">
+                        <img id="storeLogoImg" src="https://cdn.vectorstock.com/i/1000v/08/10/atk-monogram-logo-vector-44760810.jpg" alt="Logo ALHUSNA" class="w-10 h-10 object-cover rounded-full border-2 border-white shadow">
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span id="navStoreName" class="text-xl md:text-2xl font-extrabold tracking-tight cursor-pointer" onclick="aksesAdminRahasia()">ATK &amp; Fotokopi ALHUSNA</span>
+                        
+                        <!-- Tombol Admin Kecil yang Tampak di Header -->
+                        <button onclick="aksesAdminRahasia()" class="text-[10px] bg-amber-500 hover:bg-amber-600 text-white px-2 py-0.5 rounded font-bold transition shadow" title="Kelola Admin">
+                            ⚙️ Admin
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="w-full md:flex-1 md:mx-6 max-w-xl">
+                <input type="text" id="searchInput" placeholder="Cari buku, pulpen, kertas HVS..." class="w-full py-2 px-4 rounded-md text-gray-800 text-sm focus:outline-none shadow-inner" onkeyup="filterProduk()">
+            </div>
+
+            <div class="flex items-center space-x-2">
+                <button onclick="bukaKeranjang()" class="relative bg-emerald-600 hover:bg-emerald-700 px-4 py-2 rounded-md text-sm font-semibold flex items-center gap-2 shadow">
+                    🛒 <span>Daftar Belanja</span>
+                    <span id="navCartTotalBadge" class="bg-emerald-800 text-emerald-100 text-xs px-2 py-0.5 rounded font-mono font-bold">Rp 0</span>
+                    <span id="cartCount" class="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full font-bold">0</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Tombol Keranjang Floating khusus HP -->
+    <div class="fixed bottom-4 right-4 z-30 md:hidden">
+        <button onclick="bukaKeranjang()" class="bg-emerald-600 text-white p-4 rounded-full shadow-2xl flex items-center justify-center relative active:scale-95 transition">
+            🛒
+            <span id="cartCountMobile" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">0</span>
+        </button>
+    </div>
+
+    <!-- KONTEN UTAMA -->
+    <main class="container mx-auto px-4 py-6">
+        <div class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-xl p-6 mb-6 shadow-lg flex flex-col md:flex-row justify-between items-center gap-4">
+            <div>
+                <h1 id="bannerTitle" class="text-2xl font-bold mb-1">Cek Barang Sebelum ke Toko! 👋</h1>
+                <p class="text-sm opacity-90">Pilih barang yang dicari, lalu kirim daftar belanja langsung ke WhatsApp penjaga toko.</p>
+            </div>
+            <div class="bg-white/15 backdrop-blur-md px-4 py-2.5 rounded-lg border border-white/20 text-xs md:text-sm text-center w-full md:w-auto">
+                <span class="block opacity-75 mb-0.5">Nomor WA Toko Aktif:</span>
+                <strong id="activeWaDisplay" class="text-emerald-300 font-mono text-base">+6285863295067</strong>
+            </div>
+        </div>
+
+        <!-- Filter Kategori -->
+        <div class="flex gap-2 overflow-x-auto pb-3 mb-6 no-scrollbar">
+            <button onclick="filterKategori('Semua')" class="cat-btn bg-blue-600 text-white px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap shadow-sm">Semua</button>
+            <button onclick="filterKategori('Alat Tulis')" class="cat-btn bg-white text-gray-700 hover:bg-gray-100 px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap shadow-sm border">Alat Tulis</button>
+            <button onclick="filterKategori('Kertas &amp; Buku')" class="cat-btn bg-white text-gray-700 hover:bg-gray-100 px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap shadow-sm border">Kertas &amp; Buku</button>
+            <button onclick="filterKategori('Perlengkapan Kantor')" class="cat-btn bg-white text-gray-700 hover:bg-gray-100 px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap shadow-sm border">Perlengkapan Kantor</button>
+        </div>
+
+        <!-- GRID PRODUK -->
+        <div id="productList" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"></div>
+
+    </main>
+
+    <!-- SEKSI KHUSUS UNTUK MEMPRINT DAFTAR BARANG -->
+    <div id="printSection" class="hidden"></div>
+
+    <!-- FOOTER -->
+    <footer class="text-center py-6 text-xs text-gray-400">
+        <p>© 2026 ATK &amp; Fotokopi ALHUSNA. All rights reserved.</p>
+        <span onclick="aksesAdminRahasia()" class="inline-block mt-2 text-slate-300 hover:text-gray-600 cursor-pointer select-none">• Panel Admin •</span>
+    </footer>
+
+    <!-- MODAL ZOOM GAMBAR -->
+    <div id="imageModal" class="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4 hidden" onclick="tutupZoomGambar()">
+        <div class="relative max-w-4xl max-h-[90vh] flex flex-col items-center" onclick="event.stopPropagation()">
+            <button onclick="tutupZoomGambar()" class="absolute -top-10 right-0 text-white text-3xl font-bold hover:text-gray-300 px-3 py-1">✕</button>
+            <img id="zoomImageSrc" src="" alt="" class="max-h-[80vh] max-w-full object-contain rounded-lg shadow-2xl bg-black">
+            <p id="zoomImageCaption" class="text-white text-sm font-semibold mt-3 text-center">Spidol Hitam Biasa</p>
+        </div>
+    </div>
+
+    <!-- MODAL KERANJANG -->
+    <div id="cartModal" class="fixed inset-0 bg-black/60 flex justify-end z-50 hidden">
+        <div class="bg-white w-full max-w-md h-full p-5 flex flex-col justify-between shadow-2xl">
+            <div>
+                <div class="flex justify-between items-center border-b pb-3 mb-3">
+                    <h3 class="text-lg font-bold text-gray-800">🛒 Daftar Belanjaan</h3>
+                    <button onclick="tutupKeranjang()" class="text-gray-400 hover:text-black font-bold text-xl px-2">✕</button>
+                </div>
+                
+                <div class="mb-4 bg-blue-50 p-3 rounded-lg border border-blue-100">
+                    <label class="block text-xs font-bold text-blue-900 mb-1">Nama Pemesan / Pembeli:</label>
+                    <input type="text" id="buyerName" placeholder="Contoh: Kak Budi / Ibu Siti" class="w-full text-sm p-2 border rounded bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+
+                <div id="cartItems" class="space-y-3 overflow-y-auto max-h-[42vh] pr-1"><p class="text-gray-400 text-center py-8 text-sm">Belum ada barang dipilih.</p></div>
+            </div>
+
+            <div class="border-t pt-3">
+                <div class="flex justify-between font-bold text-base mb-3">
+                    <span>Estimasi Total:</span>
+                    <span id="cartTotal" class="text-blue-600">Rp 0</span>
+                </div>
+                <button onclick="kirimKeWhatsApp()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-lg font-bold text-sm shadow flex items-center justify-center gap-2 transition active:scale-95">
+                    📱 Kirim Pesanan ke WhatsApp Toko
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL ADMIN -->
+    <div id="adminModal" class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 hidden">
+        <div class="bg-white w-full max-w-xl rounded-xl shadow-2xl max-h-[90vh] flex flex-col overflow-hidden">
+            <div class="bg-blue-600 text-white p-4 flex justify-between items-center">
+                <h3 class="font-bold text-base">⚙️ Panel Admin Toko</h3>
+                <button onclick="toggleAdminModal()" class="text-white hover:text-gray-200 font-bold px-2">✕</button>
+            </div>
+
+            <div class="p-5 overflow-y-auto space-y-6">
+                <!-- Simpan / Download HTML & Print Daftar Barang -->
+                <div class="bg-indigo-50 p-4 rounded-lg border border-indigo-200 space-y-2">
+                    <h4 class="font-bold text-xs text-indigo-900 uppercase text-center">💾 Simpan &amp; Cetak Data</h4>
+                    <p class="text-xs text-indigo-700 text-center mb-2">Simpan perubahan file ke `index.html` atau cetak daftar stok barang toko kamu.</p>
+                    <div class="flex flex-col sm:flex-row gap-2">
+                        <button onclick="downloadHalamanHtml()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded text-xs font-bold shadow transition">
+                            📥 Download `index.html`
+                        </button>
+                        <button onclick="cetakDaftarBarang()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded text-xs font-bold shadow transition">
+                            🖨️ Cetak / Download PDF Daftar Barang
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Ganti Logo Toko -->
+                <div class="bg-amber-50 p-4 rounded-lg border border-amber-200">
+                    <h4 class="font-bold text-xs text-amber-900 uppercase mb-2">🖼️ Ganti Logo Toko (Link Gambar)</h4>
+                    <p class="text-[11px] text-amber-700 mb-2">Upload logo kamu ke <a href="https://postimages.org/" target="_blank" class="underline font-bold">Postimages.org</a>, lalu salin Direct Link-nya ke bawah ini:</p>
+                    <div class="space-y-2">
+                        <input type="text" id="newLogoUrlInput" placeholder="https://i.postimg.cc/xxxxx/logo.jpg" class="w-full text-xs p-2 border rounded bg-white">
+                        <button onclick="ubahLogoToko()" class="w-full bg-amber-600 hover:bg-amber-700 text-white py-2 rounded text-xs font-semibold transition">Terapkan Logo Baru</button>
+                    </div>
+                </div>
+
+                <!-- Tambah Produk Baru -->
+                <div class="bg-gray-50 p-4 rounded-lg border">
+                    <h4 class="font-bold text-xs text-gray-700 uppercase mb-2">➕ Tambah Barang Baru (Otomatis Watermark)</h4>
+                    <div class="space-y-3">
+                        <input type="text" id="newNama" placeholder="Nama Barang" class="w-full text-sm p-2 border rounded bg-white">
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="number" id="newHarga" placeholder="Harga (Rp)" class="w-full text-sm p-2 border rounded bg-white">
+                            <select id="newKategori" class="w-full text-sm p-2 border rounded bg-white">
+                                <option value="Alat Tulis">Alat Tulis</option>
+                                <option value="Kertas &amp; Buku">Kertas &amp; Buku</option>
+                                <option value="Perlengkapan Kantor">Perlengkapan Kantor</option>
+                            </select>
+                        </div>
+                        <input type="text" id="newFotoUrl" placeholder="Link Gambar Produk" class="w-full text-xs p-2 border rounded bg-white">
+                        <button id="btnTambahProduk" onclick="tambahProdukBaru()" class="w-full bg-emerald-600 text-white py-2.5 rounded text-sm font-semibold">+ Tambah Barang</button>
+                    </div>
+                </div>
+
+                <!-- Daftar Kelola Barang -->
+                <div>
+                    <h4 class="font-bold text-xs text-gray-700 uppercase mb-2">📋 Daftar Kelola Barang</h4>
+                    <div id="adminProductList" class="space-y-2 max-h-48 overflow-y-auto border p-2 rounded bg-gray-50"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT UTAMA -->
+    <script src="products.js"></script>
+    <script>
+                const ownerWhatsApp = "6285863295067";
+        const ADMIN_PIN = "1234";
+
+        let cart = JSON.parse(localStorage.getItem('alhusna_cart')) || [];
+        let currentCategory = "Semua";
+
+        document.addEventListener("DOMContentLoaded", () => {
+            renderProducts(products);
+            updateCartUI();
+            document.getElementById('activeWaDisplay').innerText = `+${ownerWhatsApp}`;
+            document.getElementById('storeLogoImg').src = storeLogoUrl;
+            document.getElementById('newLogoUrlInput').value = storeLogoUrl;
+        });
+
+        function aksesAdminRahasia() {
+            let pinMasuk = prompt("Masukkan PIN Rahasia Admin:");
+            if (pinMasuk === ADMIN_PIN) {
+                toggleAdminModal();
+            } else if (pinMasuk !== null) {
+                alert("PIN Salah!");
+            }
+        }
+
+        function toggleAdminModal() {
+            const modal = document.getElementById('adminModal');
+            modal.classList.toggle('hidden');
+            if (!modal.classList.contains('hidden')) { renderAdminProductList(); }
+        }
+
+        function ubahLogoToko() {
+            let urlInput = document.getElementById('newLogoUrlInput').value.trim();
+            if (!urlInput) {
+                alert("Link gambar logo tidak boleh kosong!");
+                return;
+            }
+            storeLogoUrl = urlInput;
+            document.getElementById('storeLogoImg').src = storeLogoUrl;
+            alert("Logo berhasil diganti! Klik 'Download File index.html' agar tersimpan.");
+        }
+
+        // FUNGSI WATERMARK "ATK ALHUSNA"
+        function tambahWatermarkKeGambar(srcUrl, callback) {
+            const img = new Image();
+            img.crossOrigin = "Anonymous";
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const scale = Math.min(1, 600 / Math.max(img.width, img.height));
+                canvas.width = Math.round(img.width * scale);
+                canvas.height = Math.round(img.height * scale);
+
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                const fontSize = Math.max(16, Math.floor(canvas.width / 15));
+                ctx.font = `bold ${fontSize}px sans-serif`;
+                
+                const text = "ATK ALHUSNA";
+                const textWidth = ctx.measureText(text).width;
+                const padding = 10;
+                
+                ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+                ctx.fillRect(canvas.width - textWidth - (padding * 2), canvas.height - fontSize - (padding * 2), textWidth + (padding * 2), fontSize + (padding * 2));
+
+                ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
+                ctx.fillText(text, canvas.width - textWidth - padding, canvas.height - padding - 4);
+
+                callback(canvas.toDataURL("image/webp", 0.75));
+            };
+            img.onerror = () => {
+                callback(srcUrl);
+            };
+            img.src = srcUrl;
+        }
+
+        function tambahProdukBaru() {
+            let name = document.getElementById('newNama').value.trim();
+            let price = parseInt(document.getElementById('newHarga').value);
+            let category = document.getElementById('newKategori').value;
+            let imageUrl = document.getElementById('newFotoUrl').value.trim();
+
+            if (!name || isNaN(price)) { alert("Nama & harga harus diisi dengan benar!"); return; }
+            if (!imageUrl) { imageUrl = "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=400&auto=format&fit=crop&q=80"; }
+
+            const btn = document.getElementById('btnTambahProduk');
+            btn.innerText = "Processing Watermark...";
+            btn.disabled = true;
+
+            tambahWatermarkKeGambar(imageUrl, (watermarkedUrl) => {
+                products.push({ id: Date.now(), name: name, price: price, category: category, image: watermarkedUrl });
+                renderProducts(products);
+                renderAdminProductList();
+
+                document.getElementById('newNama').value = '';
+                document.getElementById('newHarga').value = '';
+                document.getElementById('newFotoUrl').value = '';
+                btn.innerText = "+ Tambah Barang";
+                btn.disabled = false;
+                alert("Barang berhasil ditambahkan dengan Watermark ATK ALHUSNA!");
+            });
+        }
+
+        function renderAdminProductList() {
+            let container = document.getElementById('adminProductList');
+            container.innerHTML = '';
+            products.forEach((p) => {
+                let imgUrl = p.image || "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=400&auto=format&fit=crop&q=80";
+                container.innerHTML += `
+                    <div class="flex items-center justify-between bg-white p-2.5 rounded border text-xs gap-2">
+                        <img src="${imgUrl}" loading="lazy" decoding="async" class="w-9 h-9 object-contain bg-gray-100 rounded">
+                        <div class="flex-1 truncate"><span class="font-bold block">${p.name}</span><span class="text-blue-600">Rp ${p.price.toLocaleString('id-ID')}</span></div>
+                        <button onclick="hapusProduk(${p.id})" class="bg-red-500 text-white px-2 py-1 rounded text-[10px]">Hapus</button>
+                    </div>
+                `;
+            });
+        }
+
+        function hapusProduk(id) {
+            if (confirm("Hapus produk ini?")) {
+                products = products.filter(p => p.id !== id);
+                renderProducts(products);
+                renderAdminProductList();
+            }
+        }
+
+        // FUNGSI MENCETAK DAFTAR BARANG DENGAN PERBAIKAN PADA ISINYA
+        function cetakDaftarBarang() {
+            const printSec = document.getElementById('printSection');
+            let tableRows = '';
+            
+            products.forEach((p, i) => {
+                tableRows += `
+                    <tr>
+                        <td style="border: 1px solid #000; padding: 6px; text-align: center;">${i + 1}</td>
+                        <td style="border: 1px solid #000; padding: 6px;">${p.name}</td>
+                        <td style="border: 1px solid #000; padding: 6px;">${p.category || '-'}</td>
+                        <td style="border: 1px solid #000; padding: 6px;">Rp ${(p.price || 0).toLocaleString('id-ID')}</td>
+                    </tr>
+                `;
+            });
+
+            printSec.innerHTML = `
+                <div style="font-family: sans-serif; padding: 10px;">
+                    <h2 style="margin: 0; font-size: 18px; font-weight: bold;">DAFTAR INVENTARIS / STOK BARANG</h2>
+                    <h3 style="margin: 5px 0; font-size: 14px;">ATK & Fotokopi ALHUSNA</h3>
+                    <p style="margin: 0 0 15px 0; font-size: 12px; color: #555;">Tanggal Cetak: ${new Date().toLocaleDateString('id-ID')}</p>
+                    <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+                        <thead>
+                            <tr style="background-color: #f2f2f2;">
+                                <th style="border: 1px solid #000; padding: 6px; width: 40px; text-align: center;">No</th>
+                                <th style="border: 1px solid #000; padding: 6px; text-align: left;">Nama Barang</th>
+                                <th style="border: 1px solid #000; padding: 6px; text-align: left;">Kategori</th>
+                                <th style="border: 1px solid #000; padding: 6px; text-align: left;">Harga</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${tableRows}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            printSec.classList.remove('hidden');
+
+            setTimeout(() => {
+                window.print();
+                printSec.classList.add('hidden');
+            }, 100);
+        }
+
+        function downloadHalamanHtml() {
+            document.getElementById('adminModal').classList.add('hidden');
+            const isi = "// Data toko. Edit di sini atau lewat Panel Admin (lalu tombol Download).\n"
+                + "let storeLogoUrl = " + JSON.stringify(storeLogoUrl) + ";\n\n"
+                + "let products = " + JSON.stringify(products, null, 4) + ";\n";
+            const blob = new Blob([isi], { type: 'text/javascript;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'products.js';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            alert("File products.js berhasil di-download! Ganti products.js lama di folder website dengan file ini, lalu upload ke GitHub.");
+        }
+
+        function bukaZoomGambar(url, namaBarang) {
+            const modal = document.getElementById('imageModal');
+            const img = document.getElementById('zoomImageSrc');
+            const caption = document.getElementById('zoomImageCaption');
+            img.src = url;
+            caption.innerText = namaBarang;
+            modal.classList.remove('hidden');
+        }
+
+        function tutupZoomGambar() {
+            document.getElementById('imageModal').classList.add('hidden');
+        }
+
+        function renderProducts(list) {
+            const productList = document.getElementById('productList');
+            productList.innerHTML = '';
+            if (!list || list.length === 0) {
+                productList.innerHTML = `<p class="col-span-full text-center text-gray-400 py-10 text-sm">Tidak ada produk ditemukan.</p>`;
+                return;
+            }
+            list.forEach(p => {
+                let imgUrl = p.image || "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=400&auto=format&fit=crop&q=80";
+                let safeName = p.name.replace(/'/g, "\\'");
+                productList.innerHTML += `
+                    <div class="bg-white rounded-lg shadow-sm border hover:shadow-md transition overflow-hidden flex flex-col justify-between">
+                        <div>
+                            <div onclick="bukaZoomGambar('${imgUrl}', '${safeName}')" class="w-full h-48 bg-white flex items-center justify-center p-2 overflow-hidden border-b cursor-pointer group" title="Klik untuk memperbesar gambar">
+                                <img src="${imgUrl}" alt="${p.name}" loading="lazy" decoding="async" class="max-h-full max-w-full object-contain group-hover:scale-105 transition duration-200">
+                            </div>
+                            <div class="p-3">
+                                <span class="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded font-semibold">${p.category || 'Umum'}</span>
+                                <h3 class="text-xs font-semibold text-gray-800 line-clamp-2 mt-1 mb-1">${p.name}</h3>
+                                <div class="text-blue-600 font-bold text-sm">Rp ${(p.price || 0).toLocaleString('id-ID')}</div>
+                            </div>
+                        </div>
+                        <div class="p-3 pt-0">
+                            <button onclick="tambahKeKeranjang(${p.id})" class="w-full bg-blue-50 hover:bg-blue-600 text-blue-600 hover:text-white py-1.5 rounded text-xs font-bold transition border border-blue-200 active:scale-95">
+                                + Pilih Barang
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function filterKategori(kategori) {
+            currentCategory = kategori;
+            document.querySelectorAll('.cat-btn').forEach(btn => {
+                if(btn.innerText.includes(kategori)) {
+                    btn.className = "cat-btn bg-blue-600 text-white px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap shadow-sm";
+                } else {
+                    btn.className = "cat-btn bg-white text-gray-700 hover:bg-gray-100 px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap shadow-sm border";
+                }
+            });
+            if (kategori === "Semua") {
+                renderProducts(products);
+            } else {
+                let hasil = products.filter(p => p.category === kategori);
+                renderProducts(hasil);
+            }
+        }
+
+        function filterProduk() {
+            let keyword = document.getElementById('searchInput').value.toLowerCase();
+            let hasil = products.filter(p => p.name.toLowerCase().includes(keyword) && (currentCategory === "Semua" || p.category === currentCategory));
+            renderProducts(hasil);
+        }
+
+        function tambahKeKeranjang(id) {
+            const produkPilihan = products.find(p => p.id === id);
+            if (!produkPilihan) return;
+            const itemAda = cart.find(item => item.id === id);
+            if (itemAda) { itemAda.qty += 1; } else { cart.push({ ...produkPilihan, qty: 1 }); }
+            localStorage.setItem('alhusna_cart', JSON.stringify(cart));
+            updateCartUI();
+        }
+
+        function updateCartUI() {
+            const cartCount = document.getElementById('cartCount');
+            const cartCountMobile = document.getElementById('cartCountMobile');
+            const navCartTotalBadge = document.getElementById('navCartTotalBadge');
+            const cartItems = document.getElementById('cartItems');
+            const cartTotal = document.getElementById('cartTotal');
+            
+            let totalQty = cart.reduce((sum, item) => sum + item.qty, 0);
+            let totalPrice = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+            
+            if (cartCount) cartCount.innerText = totalQty;
+            if (cartCountMobile) cartCountMobile.innerText = totalQty;
+            if (navCartTotalBadge) navCartTotalBadge.innerText = `Rp ${totalPrice.toLocaleString('id-ID')}`;
+
+            if (cart.length === 0) {
+                cartItems.innerHTML = `<p class="text-gray-400 text-center py-8 text-sm">Belum ada barang dipilih.</p>`;
+            } else {
+                cartItems.innerHTML = '';
+                cart.forEach((item, index) => {
+                    let imgUrl = item.image || "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=400&auto=format&fit=crop&q=80";
+                    cartItems.innerHTML += `
+                        <div class="flex items-center bg-gray-50 p-3 rounded-lg border text-xs gap-3">
+                            <img src="${imgUrl}" alt="${item.name}" class="w-12 h-12 object-contain bg-white rounded border flex-shrink-0">
+                            <div class="flex-1 min-w-0">
+                                <div class="flex justify-between items-start mb-1">
+                                    <h4 class="font-bold text-gray-800 text-sm truncate">${item.name}</h4>
+                                    <button onclick="hapusItemKeranjang(${index})" class="text-red-500 font-bold px-1.5 py-0.5 bg-red-50 rounded hover:bg-red-100 ml-2">✕ Hapus</button>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <div class="text-gray-600 font-medium">Rp ${item.price.toLocaleString('id-ID')}</div>
+                                    <div class="flex items-center gap-2 bg-white border px-2 py-1 rounded">
+                                        <button onclick="kurangQty(${index})" class="px-1.5 font-bold hover:text-blue-600">-</button>
+                                        <span class="font-bold text-blue-600">${item.qty}</span>
+                                        <button onclick="tambahQty(${index})" class="bg-blue-600 text-white px-1.5 rounded font-bold hover:bg-blue-700">+</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            if (cartTotal) cartTotal.innerText = `Rp ${totalPrice.toLocaleString('id-ID')}`;
+        }
+
+        function tambahQty(index) { cart[index].qty += 1; localStorage.setItem('alhusna_cart', JSON.stringify(cart)); updateCartUI(); }
+        function kurangQty(index) { cart[index].qty -= 1; if (cart[index].qty <= 0) cart.splice(index, 1); localStorage.setItem('alhusna_cart', JSON.stringify(cart)); updateCartUI(); }
+        function hapusItemKeranjang(index) { cart.splice(index, 1); localStorage.setItem('alhusna_cart', JSON.stringify(cart)); updateCartUI(); }
+        function bukaKeranjang() { document.getElementById('cartModal').classList.remove('hidden'); }
+        function tutupKeranjang() { document.getElementById('cartModal').classList.add('hidden'); }
+
+        function formatNomorWa(num) {
+            let bersih = num.replace(/\D/g, '');
+            if (bersih.startsWith('0')) bersih = '62' + bersih.substring(1);
+            return bersih;
+        }
+
+        function kirimKeWhatsApp() {
+            if (cart.length === 0) { alert("Pilih barang dulu!"); return; }
+            let buyerName = document.getElementById('buyerName').value.trim();
+            if (!buyerName) { alert("Tulis nama pemesan!"); document.getElementById('buyerName').focus(); return; }
+            
+            let teksPesan = "Halo Toko ALHUSNA,\nSaya *" + buyerName + "* mau pesan:\n\n";
+            let total = 0;
+            cart.forEach((item, idx) => {
+                let subTotal = item.price * item.qty;
+                total += subTotal;
+                teksPesan += (idx + 1) + ". " + item.name + " (" + item.qty + "x) - Rp " + subTotal.toLocaleString('id-ID') + "\n";
+            });
+            
+            teksPesan += "\n*Total: Rp " + total.toLocaleString('id-ID') + "*";
+            teksPesan += "\n\nMohon disiapkan ya bang, terima kasih!";
+
+            let urlWa = "https://api.whatsapp.com/send?phone=" + formatNomorWa(ownerWhatsApp) + "&text=" + encodeURIComponent(teksPesan);
+            window.open(urlWa, '_blank');
+        }
+    </script>
+</body></html>
