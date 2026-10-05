@@ -1,4 +1,4 @@
-// Data toko. Edit di sini atau lewat Panel Admin (lalu tombol Download).
+// Data toko. Dikelola lewat Panel Admin (simpan otomatis ke GitHub).
 let storeLogoUrl = "https://cdn.vectorstock.com/i/1000v/08/10/atk-monogram-logo-vector-44760810.jpg";
 
 let products = [

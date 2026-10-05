@@ -203,7 +203,7 @@
 
                 <!-- Tambah Produk Baru -->
                 <div class="bg-gray-50 p-4 rounded-lg border">
-                    <h4 class="font-bold text-xs text-gray-700 uppercase mb-2">➕ Tambah Barang Baru (Foto JPG + Watermark, Simpan Otomatis)</h4>
+                    <h4 class="font-bold text-xs text-gray-700 uppercase mb-2">➕ Tambah Barang Baru (Simpan Otomatis ke GitHub)</h4>
                     <div class="space-y-3">
                         <input type="text" id="newNama" placeholder="Nama Barang" class="w-full text-sm p-2 border rounded bg-white">
                         <div class="grid grid-cols-2 gap-2">
@@ -214,11 +214,11 @@
                                 <option value="Perlengkapan Kantor">Perlengkapan Kantor</option>
                             </select>
                         </div>
+                        <input type="text" id="newFotoUrl" placeholder="Link gambar produk (https://...)" class="w-full text-xs p-2 border rounded bg-white">
                         <div>
-                            <label class="block text-[11px] text-gray-500 mb-1">Foto produk (dari HP / komputer)</label>
+                            <label class="block text-[11px] text-gray-500 mb-1">Foto produk (upload dari HP / komputer, opsional)</label>
                             <input type="file" id="newFotoFile" accept="image/*" class="w-full text-xs p-1.5 border rounded bg-white">
                         </div>
-                        <input type="text" id="newFotoUrl" placeholder="atau tempel link gambar (opsional)" class="w-full text-xs p-2 border rounded bg-white">
                         <button id="btnTambahProduk" onclick="tambahProdukBaru()" class="w-full bg-emerald-600 text-white py-2.5 rounded text-sm font-semibold">+ Tambah Barang</button>
                         <p id="adminMsg" class="text-[11px] text-gray-500 text-center"></p>
                     </div>
@@ -236,7 +236,7 @@
     <!-- JAVASCRIPT UTAMA -->
     <script src="products.js"></script>
     <script>
-                const FOTO_KOSONG = "data:image/svg+xml;utf8," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300"><rect width="300" height="300" fill="#f3f4f6"/><text x="150" y="155" font-family="sans-serif" font-size="18" fill="#9ca3af" text-anchor="middle">Foto belum tersedia</text></svg>');
+                const FOTO_KOSONG = "data:image/svg+xml;utf8," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300"><rect width="300" height="300" fill="#f3f4f6"/><text x="150" y="150" font-size="72" text-anchor="middle">&#128230;</text><text x="150" y="205" font-family="sans-serif" font-size="16" fill="#9ca3af" text-anchor="middle">Belum ada foto</text></svg>');
         const ownerWhatsApp = "6285863295067";
         const ADMIN_PIN = "1234";
 
@@ -392,19 +392,16 @@
             try {
                 const id = Date.now();
                 let imagePath = '';
-                if (file || imageUrl) {
+                if (file) {
+                    // upload foto dari HP/komputer: jadi JPG + watermark, disimpan di folder images/
                     adminPesan("Memproses foto...");
-                    const src = file ? URL.createObjectURL(file) : imageUrl;
-                    const hasil = await new Promise(res => tambahWatermarkKeGambar(src, (d, ok) => res({ d, ok })));
-                    if (hasil.ok) {
-                        imagePath = `images/${id}.jpg`;
-                        adminPesan("Mengunggah foto...");
-                        await ghApi(imagePath, 'PUT', { message: `Tambah foto ${name}`, content: hasil.d.split(',')[1] });
-                    } else if (file) {
-                        throw new Error('Foto tidak bisa dibaca');
-                    } else {
-                        imagePath = imageUrl; // link luar tidak bisa diproses, pakai linknya langsung
-                    }
+                    const hasil = await new Promise(res => tambahWatermarkKeGambar(URL.createObjectURL(file), (d, ok) => res({ d, ok })));
+                    if (!hasil.ok) throw new Error('Foto tidak bisa dibaca');
+                    imagePath = `images/${id}.jpg`;
+                    adminPesan("Mengunggah foto...");
+                    await ghApi(imagePath, 'PUT', { message: `Tambah foto ${name}`, content: hasil.d.split(',')[1] });
+                } else if (imageUrl) {
+                    imagePath = imageUrl; // pakai link apa adanya
                 }
                 adminPesan("Menyimpan data produk...");
                 products = await ghUbahProducts(list => { list.push({ id, name, price, category, image: imagePath }); return list; }, `Tambah produk ${name}`);
@@ -424,7 +421,7 @@
             let container = document.getElementById('adminProductList');
             container.innerHTML = '';
             products.forEach((p) => {
-                let imgUrl = p.image || "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=400&auto=format&fit=crop&q=80";
+                let imgUrl = p.image || FOTO_KOSONG;
                 container.innerHTML += `
                     <div class="flex items-center justify-between bg-white p-2.5 rounded border text-xs gap-2">
                         <img src="${imgUrl}" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src=FOTO_KOSONG" class="w-9 h-9 object-contain bg-gray-100 rounded">
@@ -536,7 +533,7 @@
                 return;
             }
             list.forEach(p => {
-                let imgUrl = p.image || "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=400&auto=format&fit=crop&q=80";
+                let imgUrl = p.image || FOTO_KOSONG;
                 let safeName = p.name.replace(/'/g, "\\'");
                 productList.innerHTML += `
                     <div class="bg-white rounded-lg shadow-sm border hover:shadow-md transition overflow-hidden flex flex-col justify-between">
@@ -611,7 +608,7 @@
             } else {
                 cartItems.innerHTML = '';
                 cart.forEach((item, index) => {
-                    let imgUrl = item.image || "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=400&auto=format&fit=crop&q=80";
+                    let imgUrl = item.image || FOTO_KOSONG;
                     cartItems.innerHTML += `
                         <div class="flex items-center bg-gray-50 p-3 rounded-lg border text-xs gap-3">
                             <img src="${imgUrl}" alt="${item.name}" class="w-12 h-12 object-contain bg-white rounded border flex-shrink-0">
